@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import copy
 from collections import Mapping
 from functools import partial
@@ -17,6 +18,7 @@ from fabric.tasks import Task, WrappedCallableTask
 from fabric.task_utils import _crawl, crawl, merge
 
 from utils import FabricTest, fabfile, path_prefix, aborts
+import support
 
 
 # Stupid load_fabfile wrapper to hide newly added return value.
@@ -456,6 +458,16 @@ class TestNamespaces(FabricTest):
             eq_(len(funcs), 2)
             ok_("foo" in funcs)
             ok_("bar" in funcs)
+
+    def test_exception_exclusion(self):
+        """
+        Exception subclasses should not be considered as tasks
+        """
+        exceptions = fabfile("exceptions_fabfile.py")
+        with path_prefix(exceptions):
+            docs, funcs = load_fabfile(exceptions)
+            ok_("some_task" in funcs)
+            ok_("NotATask" not in funcs)
 
     def test_explicit_discovery(self):
         """

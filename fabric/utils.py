@@ -369,6 +369,50 @@ def _format_error_output(header, body):
     )
 
 
+#<<<<<<< HEAD
+#=======
+# TODO: replace with collections.deque(maxlen=xxx) in Python 2.6
+class RingBuffer(list):
+    def __init__(self, value, maxlen):
+        # Because it's annoying typing this multiple times.
+        self._super = super(RingBuffer, self)
+        # Python 2.6 deque compatible option name!
+        self._maxlen = maxlen
+        return self._super.__init__(value)
+
+    def _trim(self):
+        if self._maxlen is None:
+            return
+        overage = max(len(self) - self._maxlen, 0)
+        del self[0:overage]
+
+    def append(self, value):
+        self._super.append(value)
+        self._trim()
+
+    def extend(self, values):
+        self._super.extend(values)
+        self._trim()
+
+    def __iadd__(self, other):
+        self.extend(other)
+        return self
+
+    # Paranoia from here on out.
+    def insert(self, index, value):
+        raise ValueError("Can't insert into the middle of a ring buffer!")
+
+    def __setslice__(self, i, j, sequence):
+        raise ValueError("Can't set a slice of a ring buffer!")
+
+    def __setitem__(self, key, value):
+        if isinstance(key, slice):
+            raise ValueError("Can't set a slice of a ring buffer!")
+        else:
+            return self._super.__setitem__(key, value)
+
+
+#>>>>>>> ce18b67efe5985cdb0887c9edc55b03fc25fea6e
 def apply_lcwd(path, env):
     # Apply CWD if a relative path
     if not os.path.isabs(path) and env.lcwd:
